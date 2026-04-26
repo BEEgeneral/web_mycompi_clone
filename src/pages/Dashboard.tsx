@@ -763,6 +763,7 @@ export default function Dashboard() {
               {[
                 { label: 'Dashboard', to: '/dashboard' },
                 { label: 'Perfil', to: '/profile' },
+                { label: 'Business', to: '/business' },
                 { label: 'Decisiones', to: '/decisions' },
                 { label: 'Invita y gana', to: '/referral' },
                 { label: 'Checkout', to: '/checkout' },

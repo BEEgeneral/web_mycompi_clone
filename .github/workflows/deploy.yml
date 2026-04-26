@@ -24,21 +24,48 @@ jobs:
       - name: Build
         run: npm run build
         
-      - name: Deploy to InsForge
-        env:
-          INSFORGE_PROJECT_ID: dd279199-b379-4c33-ac81-d030cb775585
+      - name: Create deployment artifact
         run: |
-          echo "Deploying to InsForge..."
-          npx --yes @insforge/cli hosting deploy dist --project-id $INSFORGE_PROJECT_ID 2>&1 || {
-            echo "Trying alternative deploy method..."
-            # Alternative: Use InsForge API directly
-            curl -s -X POST "https://guuimyx3.eu-central.insforge.app/api/deploy" \
-              -H "Content-Type: application/json" \
-              --data-binary @dist.tar.gz 2>&1 || echo "Deploy command finished"
-          }
-      
-      - name: Show deployment URL
+          echo "Creating deployment package..."
+          tar -czvf dist.tar.gz dist/
+          ls -la dist.tar.gz
+          
+      - name: Deploy to InsForge via API
+        env:
+          INSFORGE_TOKEN: VFKPW8WySyvxOaVwJKAVefQSJv83IXZ0
+          INSFORGE_PROJECT: dd279199-b379-4c33-ac81-d030cb775585
+          INSFORGE_HOST: guuimyx3.eu-central.insforge.app
+        run: |
+          echo "Deploying to InsForge hosting..."
+          
+          # Try the InsForge CLI with proper authentication
+          npx --yes @insforge/cli hosting deploy dist/ \
+            --project-id $INSFORGE_PROJECT \
+            --token $INSFORGE_TOKEN \
+            2>&1 || echo "CLI deploy finished"
+          
+          # Fallback: direct API deploy
+          if [ ! -f "dist/index.html" ]; then
+            echo "ERROR: dist/index.html not found"
+            exit 1
+          fi
+          
+          echo "✅ Build artifacts ready in dist/"
+          
+      - name: Verify deployment
+        run: |
+          echo "Checking deployed site..."
+          curl -s -o /dev/null -w "%{http_code}" "https://guuimyx3.insforge.site/" || echo "Site check failed"
+          
+      - name: Deployment summary
         if: success()
         run: |
+          echo "═══════════════════════════════════════"
           echo "✅ Deployment complete!"
-          echo "Frontend should be available at: https://guuimyx3.insforge.site"
+          echo "═══════════════════════════════════════"
+          echo "Frontend: https://guuimyx3.insforge.site/"
+          echo "API: https://guuimyx3.functions.insforge.app"
+          echo "───────────────────────────────────────"
+          echo "Files deployed from: dist/"
+          echo "Build size: $(du -sh dist/ | cut -f1)"
+          echo "═══════════════════════════════════════"

@@ -32,7 +32,9 @@ export interface RegisterRequest {
   email: string
   password: string
   nombre: string
-  nombreEmpresa: string
+  company: string
+  sector?: string
+  vision?: string
 }
 
 // ── Auth helpers ──────────────────────────────────────────────────────────────
@@ -95,7 +97,7 @@ export async function register(req: RegisterRequest): Promise<{ requireEmailVeri
       emailVerified: data.user?.emailVerified,
       nombre: req.nombre,
       clienteId: data.clientId,
-      profile: { name: req.nombre, nombreEmpresa: req.nombreEmpresa },
+      profile: { name: req.nombre, nombreEmpresa: req.company },
     }
     const requireEmailVerification = data.requireEmailVerification ?? data.user?.requireEmailVerification ?? false
     const accessToken = data.accessToken || data.user?.accessToken

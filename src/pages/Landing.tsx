@@ -380,7 +380,7 @@ export default function Landing() {
           <a href="#precios" style={s.navLink}>Precios</a>
           <a href="#faq" style={s.navLink}>FAQ</a>
           <Link to="/login" style={{ ...s.navLink, color: C.white }}>Acceder</Link>
-          <Link to="/registro" style={s.navCta}>Empezar gratis →</Link>
+          <Link to="/checkout" style={s.navCta}>Empezar gratis →</Link>
         </div>
 
         {/* Mobile hamburger */}
@@ -411,7 +411,7 @@ export default function Landing() {
           <a href="#precios" style={s.navLinkMobile} onClick={() => setMenuOpen(false)}>Precios</a>
           <a href="#faq" style={s.navLinkMobile} onClick={() => setMenuOpen(false)}>FAQ</a>
           <Link to="/login" style={s.navLinkMobile} onClick={() => setMenuOpen(false)}>Acceder</Link>
-          <Link to="/registro" style={s.navCtaMobile} onClick={() => setMenuOpen(false)}>Empezar gratis →</Link>
+          <Link to="/checkout" style={s.navCtaMobile} onClick={() => setMenuOpen(false)}>Empezar gratis →</Link>
         </div>
       )}
 
@@ -430,7 +430,7 @@ export default function Landing() {
             Sin permanencias. Sin técnicos. En 5 minutos tienes tu primer Compi.
           </p>
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' as const }}>
-            <Link to="/registro" style={{ ...s.btnPrimary, background: C.yellow, color: C.dark }}>Empezar gratis →</Link>
+            <Link to="/checkout" style={{ ...s.btnPrimary, background: C.yellow, color: C.dark }}>Empezar gratis →</Link>
             <a href="#como-funciona" style={s.btnOutline}>Ver cómo funciona</a>
           </div>
           <p style={{ marginTop: '1.5rem', color: C.muted, fontSize: '0.85rem' }}>
@@ -642,7 +642,7 @@ export default function Landing() {
                 ))}
               </div>
 
-              <Link to="/registro" style={{
+              <Link to="/checkout" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: '0.85rem', borderRadius: 12,
                 background: C.white, color: C.dark,
@@ -686,7 +686,7 @@ export default function Landing() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1.75rem' }}>
                 {[
-                  'Todo lo del plan Mensual',
+                  'Acceso a los 6 Compis',
                   '7 Compis agentes especializados',
                   'Prioridad en soporte',
                   'Onboarding personalizado incluido',
@@ -698,7 +698,7 @@ export default function Landing() {
                 ))}
               </div>
 
-              <Link to="/registro" style={{
+              <Link to="/checkout" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: '0.85rem', borderRadius: 12,
                 background: C.yellow, color: C.dark,

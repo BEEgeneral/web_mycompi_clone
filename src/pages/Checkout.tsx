@@ -19,7 +19,6 @@ export default function Checkout() {
   const session = getSession()
   const navigate = useNavigate()
 
-  // Redirect to login if not authenticated, with return URL
   useEffect(() => {
     if (!session) {
       navigate('/login?next=/checkout')
@@ -31,7 +30,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-  const [plan, setPlan] = useState<'monthly' | 'annual'>('monthly')
+  const [billing, setBilling] = useState<'month' | 'year'>('month')
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768)
@@ -43,20 +42,18 @@ export default function Checkout() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(EDGE_FUNCTIONS_URL + '/create-checkout-session', {
+      const res = await fetch(`${EDGE_FUNCTIONS_URL}/stripe`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.token || ''}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: session?.user?.id,
+          action: 'create_checkout',
+          plan: 'profesional',
+          billing,
           email: session?.user?.email,
-          planType: plan,
         }),
       })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Error en el pago')
       if (json.url) {
         window.location.href = json.url
       } else {
@@ -69,27 +66,20 @@ export default function Checkout() {
   }
 
   const monthlyAmount = 49
-  const annualAmount = 39
-  const annualSavings = 120
+  const annualMonthly = 32.50
+  const annualTotal = 390
+  const annualSavings = 198
 
   return (
     <div style={{ fontFamily: "'Poppins', system-ui, sans-serif", background: C.cream, color: C.dark, minHeight: '100vh', WebkitFontSmoothing: 'antialiased', overflowX: 'hidden', width: '100%', maxWidth: '100vw' }}>
       <style>{`* { margin: 0; padding: 0; box-sizing: border-box; }`}</style>
 
-      {/* Nav */}
       <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isMobile ? '0.75rem 1rem' : '1rem 2rem', background: C.dark, position: 'sticky', top: 0, zIndex: 100, maxWidth: '100%', overflowX: 'hidden' }}>
         <div style={{ fontSize: '1.4rem', fontWeight: 800, color: C.white }}>
           <span style={{ color: C.yellow }}>My</span>Compi
         </div>
         <div style={{ display: 'flex', gap: '1.5rem' }}>
-          {session ? (
-            <Link to="/dashboard" style={{ color: C.white, textDecoration: 'none', fontSize: '0.9rem', minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Ir al dashboard →</Link>
-          ) : (
-            <>
-              <Link to="/login" style={{ color: C.pastel, textDecoration: 'none', fontSize: '0.9rem', minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Acceder</Link>
-              <Link to="/registro" style={{ color: C.white, textDecoration: 'none', fontSize: '0.9rem', minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Regístrate</Link>
-            </>
-          )}
+          <Link to="/dashboard" style={{ color: C.white, textDecoration: 'none', fontSize: '0.9rem', minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Ir al dashboard →</Link>
         </div>
       </nav>
 
@@ -106,7 +96,7 @@ export default function Checkout() {
           fontFamily: 'inherit',
         }}>
           <button
-            onClick={() => setPlan('monthly')}
+            onClick={() => setBilling('month')}
             style={{
               flex: 1,
               padding: '0.6rem 1.5rem',
@@ -117,13 +107,13 @@ export default function Checkout() {
               cursor: 'pointer',
               fontFamily: 'inherit',
               transition: 'all 0.2s',
-              background: plan === 'monthly' ? C.dark : 'transparent',
-              color: plan === 'monthly' ? C.white : C.muted,
+              background: billing === 'month' ? C.dark : 'transparent',
+              color: billing === 'month' ? C.white : C.muted,
             }}>
             Mensual · €{monthlyAmount}/mes
           </button>
           <button
-            onClick={() => setPlan('annual')}
+            onClick={() => setBilling('year')}
             style={{
               flex: 1,
               padding: '0.6rem 1.5rem',
@@ -134,10 +124,10 @@ export default function Checkout() {
               cursor: 'pointer',
               fontFamily: 'inherit',
               transition: 'all 0.2s',
-              background: plan === 'annual' ? C.dark : 'transparent',
-              color: plan === 'annual' ? C.white : C.muted,
+              background: billing === 'year' ? C.dark : 'transparent',
+              color: billing === 'year' ? C.white : C.muted,
             }}>
-            Anual · €{annualAmount}/mes
+            Anual · €{annualMonthly}/mes
             <span style={{
               display: 'inline-block',
               marginLeft: '0.4rem',
@@ -149,11 +139,11 @@ export default function Checkout() {
               borderRadius: '10px',
               verticalAlign: 'middle',
             }}>
-              −20%
+              −33%
             </span>
           </button>
         </div>
-        {plan === 'annual' && (
+        {billing === 'year' && (
           <div style={{ marginTop: '0.6rem', fontSize: '0.8rem', color: C.green, fontWeight: 600 }}>
             🎁 Ahorras €{annualSavings}/año — 2 meses gratis
           </div>
@@ -173,15 +163,15 @@ export default function Checkout() {
             ✓ Suscripción activa
           </div>
           <h1 style={{ fontSize: isMobile ? '1.8rem' : '2.2rem', fontWeight: 800, color: C.dark, lineHeight: 1.2, marginBottom: '1.5rem' }}>
-            {plan === 'annual'
+            {billing === 'year'
               ? <>Ahorra €{annualSavings} al año con<br /><span style={{ color: C.green }}>MyCompi Anual</span></>
-              : <>Empieza hoy con<br /><span style={{ color: C.yellow }}>MyCompi</span></>
+              : <>Tu equipo de agentes IA<br /><span style={{ color: C.yellow }}>funcionando 24/7</span></>
             }
           </h1>
           <p style={{ color: '#4B5563', fontSize: '1rem', lineHeight: 1.7, marginBottom: '2rem' }}>
-            {plan === 'annual'
+            {billing === 'year'
               ? '6 Compis especializados trabajando 24/7 para tu negocio. Pago anual con 2 meses gratis incluidos.'
-              : '9 Compis especializados trabajan 24/7 para tu negocio. Sin permanencias, sin promesas vacías — solo resultados.'
+              : '6 Compis especializados trabajan 24/7 para tu negocio. Sin permanencias, sin promesas vacías — solo resultados.'
             }
           </p>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2.5rem' }}>
@@ -207,37 +197,37 @@ export default function Checkout() {
         {/* Right: pricing card */}
         <div style={{
           background: C.white, borderRadius: '20px', padding: isMobile ? '1.75rem 1.25rem' : '2.5rem',
-          boxShadow: '0 8px 40px rgba(45,50,97,0.12)', border: `2px solid ${plan === 'annual' ? C.green : C.pastel}`,
+          boxShadow: '0 8px 40px rgba(45,50,97,0.12)', border: `2px solid ${billing === 'year' ? C.green : C.pastel}`,
           flex: '0 0 auto', width: '100%', maxWidth: isMobile ? '100%' : 340, boxSizing: 'border-box',
           transition: 'border-color 0.2s',
         }}>
-          {plan === 'annual' && (
+          {billing === 'year' && (
             <div style={{ background: C.green, color: C.white, fontSize: '0.8rem', fontWeight: 700, padding: '0.35rem 1rem', borderRadius: '20px', display: 'inline-block', marginBottom: '1.5rem' }}>
               🎁 2 meses gratis
             </div>
           )}
-          {plan === 'monthly' && (
+          {billing === 'month' && (
             <div style={{ background: C.dark, color: C.white, fontSize: '0.8rem', fontWeight: 700, padding: '0.35rem 1rem', borderRadius: '20px', display: 'inline-block', marginBottom: '1.5rem' }}>
               €49 / mes
             </div>
           )}
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: C.dark, marginBottom: '0.5rem' }}>
-            MyCompi {plan === 'annual' ? 'Anual' : 'Profesional'}
+            MyCompi {billing === 'year' ? 'Anual' : 'Profesional'}
           </h2>
           <p style={{ color: C.muted, fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-            {plan === 'annual' ? 'Pago anual · 2 meses gratis incluidos' : 'Sin permanencia · Cancela cuando quieras'}
+            {billing === 'year' ? 'Pago anual · 2 meses gratis incluidos' : 'Sin permanencia · Cancela cuando quieras'}
           </p>
 
           {/* Price display */}
           <div style={{ marginBottom: '1.5rem' }}>
-            {plan === 'annual' ? (
+            {billing === 'year' ? (
               <>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginBottom: '0.25rem' }}>
-                  <span style={{ fontSize: '2.5rem', fontWeight: 800, color: C.green }}>€{annualAmount}</span>
+                  <span style={{ fontSize: '2.5rem', fontWeight: 800, color: C.green }}>€{annualMonthly}</span>
                   <span style={{ color: C.muted, fontSize: '1rem' }}>/mes</span>
                 </div>
                 <div style={{ fontSize: '0.85rem', color: C.muted }}>
-                  Facturado como <strong>€{annualAmount * 12}/año</strong>
+                  Facturado como <strong>€{annualTotal}/año</strong>
                 </div>
                 <div style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', background: '#F0FFF4', borderRadius: '8px', borderLeft: `3px solid ${C.green}`, fontSize: '0.82rem', color: C.green, fontWeight: 600 }}>
                   💰 Ahorras €{annualSavings} frente a mensual
@@ -261,24 +251,24 @@ export default function Checkout() {
           <button onClick={handleContratar} disabled={loading}
             style={{
               width: '100%', padding: '1rem',
-              background: plan === 'annual' ? C.green : C.yellow,
-              color: plan === 'annual' ? C.white : C.dark,
+              background: billing === 'year' ? C.green : C.yellow,
+              color: billing === 'year' ? C.white : C.dark,
               border: 'none', borderRadius: '10px',
               fontSize: '1.1rem', fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.7 : 1, fontFamily: 'inherit', marginBottom: '1rem',
               minHeight: 52, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: plan === 'annual' ? '0 4px 14px rgba(34,197,94,0.35)' : 'none',
+              boxShadow: billing === 'year' ? '0 4px 14px rgba(34,197,94,0.35)' : 'none',
             }}>
             {loading
               ? 'Redirigiendo a Stripe...'
-              : plan === 'annual'
-                ? `Contratar anual → (€${annualAmount * 12}/año)`
+              : billing === 'year'
+                ? `Contratar anual → (€${annualTotal}/año)`
                 : 'Contratar ahora →'
             }
           </button>
 
           <p style={{ textAlign: 'center', color: C.muted, fontSize: '0.8rem', marginBottom: '1.5rem' }}>
-            Pago seguro con Stripe · {plan === 'annual' ? 'Renovación anual automática' : 'Cancela cuando quieras'}
+            Pago seguro con Stripe · {billing === 'year' ? 'Renovación anual automática' : 'Cancela cuando quieras'}
           </p>
 
           <div style={{ borderTop: `1px solid ${C.pastel}`, paddingTop: '1.5rem' }}>

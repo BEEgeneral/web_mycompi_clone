@@ -29,7 +29,9 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const Analytics = lazy(() => import('./pages/Analytics'))
 const Referral = lazy(() => import('./pages/Referral'))
 const Decisions = lazy(() => import('./pages/Decisions'))
+const Business = lazy(() => import('./pages/Business'))
 const NotFound = lazy(() => import('./pages/NotFound'))
+const New = lazy(() => import('./pages/New'))
 
 // Inline skeleton fallback — avoids loading a separate CSS file for the loading state
 function PageLoader() {
@@ -171,6 +173,18 @@ export default function App() {
                     <Decisions />
                   </PrivateRoute>
                 }
+              />
+              <Route path="/business" element={
+                <PrivateRoute>
+                  <Business />
+                </PrivateRoute>
+              }
+              />
+              <Route path="/new" element={
+                <PrivateRoute>
+                  <New />
+                </PrivateRoute>
+              }
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
