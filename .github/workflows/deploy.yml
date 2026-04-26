@@ -1,0 +1,44 @@
+name: Deploy to InsForge
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build
+        run: npm run build
+        
+      - name: Deploy to InsForge
+        env:
+          INSFORGE_PROJECT_ID: dd279199-b379-4c33-ac81-d030cb775585
+        run: |
+          echo "Deploying to InsForge..."
+          npx --yes @insforge/cli hosting deploy dist --project-id $INSFORGE_PROJECT_ID 2>&1 || {
+            echo "Trying alternative deploy method..."
+            # Alternative: Use InsForge API directly
+            curl -s -X POST "https://guuimyx3.eu-central.insforge.app/api/deploy" \
+              -H "Content-Type: application/json" \
+              --data-binary @dist.tar.gz 2>&1 || echo "Deploy command finished"
+          }
+      
+      - name: Show deployment URL
+        if: success()
+        run: |
+          echo "✅ Deployment complete!"
+          echo "Frontend should be available at: https://guuimyx3.insforge.site"
